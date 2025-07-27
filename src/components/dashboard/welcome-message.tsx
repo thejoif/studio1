@@ -14,19 +14,27 @@ export function WelcomeMessage() {
   useEffect(() => {
     async function getWelcomeMessage() {
       if (user) {
+        // Set a default message immediately for better UX
+        const fallbackMessage = `¡Bienvenido de nuevo, ${user.name}!`;
+        setWelcomeMessage(fallbackMessage);
+
         try {
+          // Try to get the personalized one, but don't block rendering
           const result = await generatePersonalizedWelcomeMessage({
             userName: user.name,
             userRole: user.role,
           });
-          setWelcomeMessage(result.welcomeMessage);
+          if (result.welcomeMessage) {
+            setWelcomeMessage(result.welcomeMessage);
+          }
         } catch (error) {
-          console.error('Error generating welcome message:', error);
-          // Fallback message
-          setWelcomeMessage(`¡Bienvenido de nuevo, ${user.name}!`);
+          console.error('Could not generate personalized welcome message. Using fallback.', error);
+          // Fallback is already set, so we just log the error.
         } finally {
           setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
     }
 
@@ -40,6 +48,10 @@ export function WelcomeMessage() {
             <Skeleton className="h-6 w-3/4" />
         </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
